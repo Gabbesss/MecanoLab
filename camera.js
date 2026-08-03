@@ -1,169 +1,84 @@
 // =========================
-// MecanoLab - camera.js
-// Sistema de câmera
+// camera.js
 // =========================
 
-const Camera = (() => {
+const Camera = {
 
-    let cam = {
-        x: 0,
-        y: 0,
-        zoom: 1,
+    x: 0,
+    y: 0,
+    zoom: 1,
 
-        viewportWidth: 0,
-        viewportHeight: 0
-    };
+    dragging: false,
 
-    let dragging = false;
+    lastX: 0,
+    lastY: 0,
 
-    let lastMouse = {
-        x: 0,
-        y: 0
-    };
+    updateViewport(){},
 
-    function updateViewport(w, h) {
-        cam.viewportWidth = w;
-        cam.viewportHeight = h;
-    }
-
-    function screenToWorld(sx, sy) {
+    screenToWorld(x,y){
 
         return {
 
             x:
-                (sx - cam.viewportWidth / 2) /
-                    cam.zoom +
-                cam.x,
+                (x-canvas.width/2)/this.zoom
+                +this.x,
 
             y:
-                (sy - cam.viewportHeight / 2) /
-                    cam.zoom +
-                cam.y
+                (y-canvas.height/2)/this.zoom
+                +this.y
 
         };
 
     }
 
-    function worldToScreen(wx, wy) {
+};
 
-        return {
+// Arrastar câmera com botão do meio
+canvas.addEventListener("mousedown",(e)=>{
 
-            x:
-                (wx - cam.x) *
-                    cam.zoom +
-                cam.viewportWidth / 2,
+    if(e.button!==1) return;
 
-            y:
-                (wy - cam.y) *
-                    cam.zoom +
-                cam.viewportHeight / 2
+    Camera.dragging=true;
 
-        };
+    Camera.lastX=e.clientX;
+    Camera.lastY=e.clientY;
 
-    }
+});
 
-    canvas.addEventListener("mousedown", e => {
+window.addEventListener("mouseup",()=>{
 
-        // botão do meio
-        if (e.button === 1) {
+    Camera.dragging=false;
 
-            dragging = true;
+});
 
-            lastMouse.x = e.clientX;
-            lastMouse.y = e.clientY;
+window.addEventListener("mousemove",(e)=>{
 
-        }
+    if(!Camera.dragging) return;
 
-    });
+    const dx=e.clientX-Camera.lastX;
+    const dy=e.clientY-Camera.lastY;
 
-    window.addEventListener("mouseup", () => {
+    Camera.x-=dx/Camera.zoom;
+    Camera.y-=dy/Camera.zoom;
 
-        dragging = false;
+    Camera.lastX=e.clientX;
+    Camera.lastY=e.clientY;
 
-    });
+});
 
-    window.addEventListener("mousemove", e => {
+// Zoom
+canvas.addEventListener("wheel",(e)=>{
 
-        if (!dragging)
-            return;
+    e.preventDefault();
 
-        const dx = e.clientX - lastMouse.x;
-        const dy = e.clientY - lastMouse.y;
+    if(e.deltaY<0)
+        Camera.zoom*=1.1;
+    else
+        Camera.zoom*=0.9;
 
-        cam.x -= dx / cam.zoom;
-        cam.y -= dy / cam.zoom;
+    Camera.zoom=Math.max(
+        0.2,
+        Math.min(5,Camera.zoom)
+    );
 
-        lastMouse.x = e.clientX;
-        lastMouse.y = e.clientY;
-
-    });
-
-    canvas.addEventListener("wheel", e => {
-
-        e.preventDefault();
-
-        const mouse = screenToWorld(
-            e.offsetX,
-            e.offsetY
-        );
-
-        const factor = e.deltaY < 0 ? 1.1 : 0.9;
-
-        cam.zoom *= factor;
-
-        cam.zoom = Math.max(
-            0.15,
-            Math.min(
-                6,
-                cam.zoom
-            )
-        );
-
-        const mouseAfter = screenToWorld(
-            e.offsetX,
-            e.offsetY
-        );
-
-        cam.x += mouse.x - mouseAfter.x;
-        cam.y += mouse.y - mouseAfter.y;
-
-    }, { passive: false });
-
-    function center(x, y) {
-
-        cam.x = x;
-        cam.y = y;
-
-    }
-
-    function reset() {
-
-        cam.x = 0;
-        cam.y = 0;
-        cam.zoom = 1;
-
-    }
-
-    return {
-
-        get x() {
-            return cam.x;
-        },
-
-        get y() {
-            return cam.y;
-        },
-
-        get zoom() {
-            return cam.zoom;
-        },
-
-        updateViewport,
-        screenToWorld,
-        worldToScreen,
-        center,
-        reset
-
-    };
-
-})();
+},{passive:false});
