@@ -1,197 +1,121 @@
 // =========================
-// MecanoLab - input.js
-// Entrada do usuário
+// input.js (novo)
+// Clique para criar e arrastar
 // =========================
 
-(() => {
-
-let dragging = false;
+let mouseDown = false;
 let dragBody = null;
-let dragOffset = { x: 0, y: 0 };
 
-function getMouse(e){
+canvas.addEventListener("mousedown", function(e){
+
+    if(e.button !== 0) return;
+
+    mouseDown = true;
 
     const rect = canvas.getBoundingClientRect();
 
-    const sx = e.clientX - rect.left;
-    const sy = e.clientY - rect.top;
+    const mouse = Camera.screenToWorld(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+    );
 
-    const world = Camera.screenToWorld(sx, sy);
+    const bodies = Matter.Composite.allBodies(Physics.world);
 
-    App.mouse.x = sx;
-    App.mouse.y = sy;
+    const found = Matter.Query.point(
+        bodies,
+        mouse
+    );
 
-    App.mouse.worldX = world.x;
-    App.mouse.worldY = world.y;
+    if(found.length){
 
-    return world;
-}
+        dragBody = found[0];
 
-function pickBody(x,y){
+        App.selectedPart = dragBody;
 
-    let nearest = null;
-    let nearestDist = Infinity;
+        Matter.Body.setStatic(
+            dragBody,
+            true
+        );
 
-    for(const body of App.parts){
+    }else{
 
-        const dx = body.position.x - x;
-        const dy = body.position.y - y;
+        switch(App.selectedTool){
 
-        const d = Math.sqrt(dx*dx+dy*dy);
+            case "beam":
+                dragBody = Physics.addRectangle(mouse.x,mouse.y,160,20);
+            break;
 
-        if(d < 45 && d < nearestDist){
-            nearest = body;
-            nearestDist = d;
+            case "plate":
+                dragBody = Physics.addRectangle(mouse.x,mouse.y,80,80);
+            break;
+
+            case "wheel":
+                dragBody = Physics.addCircle(mouse.x,mouse.y,35);
+            break;
+
+            case "gear":
+                dragBody = Physics.addCircle(mouse.x,mouse.y,40);
+                dragBody.label="gear";
+            break;
+
+            case "motor":
+                dragBody = Physics.addRectangle(mouse.x,mouse.y,60,60);
+                dragBody.label="motor";
+            break;
+
+            case "spring":
+                dragBody = Physics.addRectangle(mouse.x,mouse.y,120,18);
+                dragBody.label="spring";
+            break;
+
+            case "piston":
+                dragBody = Physics.addRectangle(mouse.x,mouse.y,120,25);
+                dragBody.label="piston";
+            break;
+
+            case "axle":
+                dragBody = Physics.addCircle(mouse.x,mouse.y,12);
+                dragBody.label="axle";
+            break;
+
         }
 
     }
 
-    return nearest;
+});
 
-}
+canvas.addEventListener("mousemove",function(e){
 
-canvas.addEventListener("mousedown",(e)=>{
+    if(!mouseDown) return;
+    if(!dragBody) return;
 
-    if(e.button!==0) return;
+    const rect = canvas.getBoundingClientRect();
 
-    const pos = getMouse(e);
+    const mouse = Camera.screenToWorld(
+        e.clientX-rect.left,
+        e.clientY-rect.top
+    );
 
-    const body = pickBody(pos.x,pos.y);
+    Matter.Body.setPosition(
+        dragBody,
+        mouse
+    );
 
-    if(body){
+});
 
-        App.selectedPart = body;
+window.addEventListener("mouseup",function(){
 
-        dragging = true;
-        dragBody = body;
+    mouseDown=false;
 
-        dragOffset.x = body.position.x-pos.x;
-        dragOffset.y = body.position.y-pos.y;
+    if(dragBody){
 
-    }else{
-
-        App.selectedPart = Parts.create(
-            App.selectedTool,
-            pos.x,
-            pos.y
+        Matter.Body.setStatic(
+            dragBody,
+            false
         );
 
     }
 
-});
-
-window.addEventListener("mousemove",(e)=>{
-
-    const pos = getMouse(e);
-
-    if(dragging && dragBody){
-
-        Matter.Body.setPosition(
-            dragBody,
-            {
-                x:pos.x+dragOffset.x,
-                y:pos.y+dragOffset.y
-            }
-        );
-
-        Matter.Body.setVelocity(
-            dragBody,
-            {x:0,y:0}
-        );
-
-    }
-
-});
-
-window.addEventListener("mouseup",()=>{
-
-    dragging=false;
     dragBody=null;
 
 });
-
-window.addEventListener("keydown",(e)=>{
-
-    if(!App.selectedPart)
-        return;
-
-    switch(e.key){
-
-        case "Delete":
-
-            Physics.remove(App.selectedPart);
-            App.selectedPart=null;
-
-        break;
-
-        case "q":
-
-        case "Q":
-
-            Matter.Body.rotate(
-                App.selectedPart,
-                -Math.PI/18
-            );
-
-        break;
-
-        case "e":
-
-        case "E":
-
-            Matter.Body.rotate(
-                App.selectedPart,
-                Math.PI/18
-            );
-
-        break;
-
-        case "d":
-
-        case "D":
-
-            Matter.Body.translate(
-                App.selectedPart,
-                {x:10,y:0}
-            );
-
-        break;
-
-        case "a":
-
-        case "A":
-
-            Matter.Body.translate(
-                App.selectedPart,
-                {x:-10,y:0}
-            );
-
-        break;
-
-        case "w":
-
-        case "W":
-
-            Matter.Body.translate(
-                App.selectedPart,
-                {x:0,y:-10}
-            );
-
-        break;
-
-        case "s":
-
-        case "S":
-
-            Matter.Body.translate(
-                App.selectedPart,
-                {x:0,y:10}
-            );
-
-        break;
-
-    }
-
-});
-
-})();
