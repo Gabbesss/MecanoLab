@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MecanoLab</title>
+
+<link rel="stylesheet" href="style.css">
+
+<!-- Matter.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js"></script>
+</head>
+
+<body>
+
+<div id="toolbar">
+
+<h1>MecanoLab</h1>
+
+<div class="category">
+
+<h2>Estruturas</h2>
+
+<button data-part="beam">Barra</button>
+<button data-part="plate">Placa</button>
+
+</div>
+
+<div class="category">
+
+<h2>Movimento</h2>
+
+<button data-part="wheel">Roda</button>
+<button data-part="gear">Engrenagem</button>
+<button data-part="motor">Motor</button>
+
+</div>
+
+<div class="category">
+
+<h2>Mecânica</h2>
+
+<button data-part="spring">Mola</button>
+<button data-part="piston">Pistão</button>
+<button data-part="axle">Eixo</button>
+
+</div>
+
+<hr>
+
+<button id="play">▶ Simular</button>
+<button id="pause">⏸ Pausar</button>
+<button id="clear">🗑 Limpar</button>
+
+<hr>
+
+<button id="save">💾 Salvar</button>
+<button id="load">📂 Carregar</button>
+
+</div>
+
+<div id="viewport">
+
+<canvas id="world"></canvas>
+
+</div>
+
+<script src="camera.js"></script>
+<script src="input.js"></script>
+<script src="grid.js"></script>
+<script src="parts.js"></script>
+<script src="physics.js"></script>
+<script src="renderer.js"></script>
+<script src="editor.js"></script>
+<script src="toolbox.js"></script>
+<script src="joints.js"></script>
+<script src="motors.js"></script>
+<script src="springs.js"></script>
+<script src="pistons.js"></script>
+<script src="gears.js"></script>
+<script src="save.js"></script>
+<script src="ui.js"></script>
+<script src="main.js"></script>
+
+</body>
+</html>
